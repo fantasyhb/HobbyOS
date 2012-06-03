@@ -184,10 +184,14 @@ save:
 	push	fs
 	push	gs
 
+	mov	esi, edx
+	
 	mov	dx, ss
 	mov	ds, dx
 	mov	es, dx
 
+	mov 	edx, esi
+	
 	mov	esi, esp
 
 	inc	dword [k_reenter]
