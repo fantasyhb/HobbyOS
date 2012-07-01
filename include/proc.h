@@ -37,6 +37,18 @@ typedef struct s_proc
      u32 pid;
      char p_name[16];
      int nr_tty;
+
+     int p_flags;
+     
+     int p_recvfrom;
+     int p_sendto;
+     int has_int_msg;
+
+     struct s_proc * q_sending;
+     struct s_proc * next_sending;
+     
+     MESSAGE *p_msg;
+     
 }PROCESS;
 
 typedef void (*task_f)();
@@ -48,17 +60,19 @@ typedef struct s_task
      char name[32];
 }TASK;
 
-#define NR_TASK 1
+#define NR_TASK 2
 #define NR_PROC 3
 
 #define STACK_SIZE_TESTA  0x8000 //32KB
 #define STACK_SIZE_TESTB  0x8000 //32KB
 #define STACK_SIZE_TESTC  0x8000 //32KB
 #define STACK_SIZE_TTY    0x8000
+#define STACK_SIZE_SYS    0x8000
 
 #define STACK_SIZE_TOTAL  (STACK_SIZE_TESTC+	\
                            STACK_SIZE_TESTB+	\
 			   STACK_SIZE_TESTA+	\
-			   STACK_SIZE_TTY)
+			   STACK_SIZE_TTY+ \
+			   STACK_SIZE_SYS)
 
 #endif

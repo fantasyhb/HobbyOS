@@ -30,17 +30,26 @@ int kernel_main();
 void TestA();
 void TestB();
 void TestC();
-/*syscall.asm*/
+void panic(const char* fmt, ...);
 int get_ticks();
+
+/*syscall.asm*/
 void write(char *buf, int len);
 /*proc.c*/
 int sys_get_ticks();
+void* va2la(int pid, void *va);
+int ldt_seg_linear(PROCESS *p, int idx);
+int proc2pid(PROCESS *p);
+int sys_sendrec(int function, int src_dest, MESSAGE *m, struct s_proc *p);
+int send_recv(int function, int src_dest, MESSAGE *msg);
+
 /* keyboard.c */
 void init_keyboard();
 /* tty.c  */
 void task_tty();
 void in_process(TTY *p_tty, u32 key);
-int sys_write(char *buf, int len, PROCESS *p_proc);
+/* int sys_write(char *buf, int len, PROCESS *p_proc); */
+int sys_printx(int _unused1, int _unused2, char *s, PROCESS *p_proc);
 /* console.c */
 void out_char(CONSOLE *, char);
 void init_console(TTY *p_tty);
@@ -49,3 +58,8 @@ void scroll_screen(CONSOLE *p_con, int direction);
 int vsprintf(char *buf, const char*fmt, va_list arg);
 /* printf.c */
 int printf(const char *fmt, ... );
+#define printl printf
+/* misc.c */
+void spin( char *info);
+/* systask.c */
+void task_sys();

@@ -1,10 +1,21 @@
 #ifndef _CONST_H_
 #define _CONST_H_
+/* assert */
+#define ASSERT
+#ifdef ASSERT
+void assertion_failurel(char *exp, char *file, char* base_file, int nline);
+#define assert(exp) if (exp) ;\
+     else assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__)
+#else
+#define assert(exp)
+#endif
+
 /* GDT and LDT  */
 #define	GDT_SIZE	128
 #define	IDT_SIZE	256
 #define LDT_SIZE        2
-
+#define INDEX_LDT_C     0
+#define INDEX_LDT_RW    1
 /* privilege  */
 #define	PRIVILEGE_KRNL	0
 #define	PRIVILEGE_TASK	1
@@ -57,5 +68,30 @@
 /* tty */
 #define NR_CONSOLE 3
 
+#define MAG_CH_PANIC	'\002'
+#define MAG_CH_ASSERT	'\003'
 
+/* printf */
+#define STR_LEN 1024
+
+/* ipc */
+#define SEND 1
+#define RECEIVE 2
+#define BOTH 3
+#define INTERRUPT	-10
+
+#define TASK_TTY	0
+#define TASK_SYS	1
+#define ANY		(NR_TASK + NR_PROC + 10)
+#define NO_TASK		(NR_TASK + NR_PROC + 20)
+
+enum msgtype {
+	HARD_INT = 1,
+	GET_TICKS,
+};
+/* Process */
+#define SENDING   0x02	/* set when proc trying to send */
+#define RECEIVING 0x04	/* set when proc trying to recv */
+
+#define	RETVAL		u.m3.m3i1
 #endif

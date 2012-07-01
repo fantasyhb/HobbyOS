@@ -5,13 +5,14 @@
 int printf(const char *fmt, ... )
 {
      int i ;
-     char buf[256];
+     char buf[STR_LEN];
      
      va_list arg = (va_list)((char*)(&fmt)+4);
           
      i = vsprintf(buf, fmt, arg);
-
-     write(buf, i);
-
+     /* 
+          write(buf, i);
+ */
+     printx(buf);
      return i;
 }     

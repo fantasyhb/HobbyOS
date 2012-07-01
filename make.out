@@ -1,0 +1,1 @@
+gcc -I include/ -c -fno-builtin -fno-stack-protector -o kernel/proc.o kernel/proc.c

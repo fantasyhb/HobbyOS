@@ -22,6 +22,7 @@ int kernel_main()
      char *p_task_stack = task_stack + STACK_SIZE_TOTAL;
      u16 selector_ldt = SELECTOR_LDT_FIRST;
      int i;
+     int priority;
      for (i=0; i<NR_TASK+NR_PROC; i++)
      {
 	  if ( i<NR_TASK )
@@ -30,6 +31,7 @@ int kernel_main()
 	       privilege = PRIVILEGE_TASK;
 	       rpl = RPL_TASK;
 	       eflags = 0x1202;
+	       priority = 30;
 	  }
 	  else
 	  {
@@ -37,6 +39,7 @@ int kernel_main()
 	       privilege = PRIVILEGE_USER;
 	       rpl = RPL_USER;
 	       eflags = 0x202;
+	       priority = 10;
 	  }
 	  
 	  strcpy(p_proc->p_name, p_task->name);
@@ -58,21 +61,30 @@ int kernel_main()
 	  p_proc->regs.eflags = eflags;  
     
 	  p_task_stack -= p_task->stacksize;
+
+	  p_proc->nr_tty = 0;
+	  
+	  p_proc->ticks = p_proc->priority = priority;
+	  
+	  p_proc->p_flags = 0;
+	  p_proc->p_msg = 0;
+	  p_proc->p_recvfrom = NO_TASK;
+	  p_proc->p_sendto = NO_TASK;
+	  p_proc->has_int_msg = 0;
+	  p_proc->q_sending = 0;
+	  p_proc->next_sending = 0;
+
 	  p_proc++;
 	  p_task++;
 	  selector_ldt += 1<<3;
 
-	  p_proc->nr_tty = 0; 
      }
+     
     
-     proc_table[0].ticks = proc_table[0].priority = 30;
-     proc_table[1].ticks = proc_table[1].priority = 10;
-     proc_table[2].ticks = proc_table[2].priority = 10;
-     proc_table[3].ticks = proc_table[3].priority = 10;
-
-     proc_table[1].nr_tty = 0;
-     proc_table[2].nr_tty = 1;
-     proc_table[3].nr_tty = 2;
+    
+     /* proc_table[1].nr_tty = 0; */
+     /* proc_table[2].nr_tty = 1; */
+     /* proc_table[3].nr_tty = 2; */
 
      p_proc_ready = proc_table;
      k_reenter = 0;
@@ -81,30 +93,35 @@ int kernel_main()
      init_clock();
      /* init keyboard */
      init_keyboard();
-    
+
      restart();  //kernel.asm
 
 }
 
 void TestA()
 {
+     /* 
+     spin("easdfafd");
+       assert(0);     printf("%d \n", get_ticks());
+ */
      int i=0x1000;
      while(1)
      {
-	  //      get_ticks();
-	  printf("A ");
-	  ms_delay(150);
+	  printf("%d ", get_ticks());
+	  ms_delay(1000);
      }
 
 }
 void TestB()
 {
      int i=0x2000;
-      
+     
      while(1)
      {
+	  /* 
 	  printf("BBB");
-	  ms_delay(150);
+	   */
+
      } 
 
 }
@@ -114,8 +131,10 @@ void TestC()
 
      while(1)
      {
+	  /* 
 	  printf("CCC");
-	  ms_delay(150);
+	   */
+
      }
 }
 
@@ -145,4 +164,32 @@ void clear_line(int st, int end)
 	  }
      }
      disp_pos = temp;
+}
+void panic(const char* fmt, ...)
+{
+     int i ;
+     char buf[STR_LEN];
+
+     va_list arg = (va_list)((char*)&fmt + 4);
+
+     i = vsprintf(buf, fmt, arg);
+
+//     printf("%s", buf);
+     printf("%cSYSTEM PANIC %s", MAG_CH_PANIC, buf);
+
+}
+int get_ticks()
+{
+     MESSAGE msg;
+     memset(&msg, 0, sizeof(MESSAGE));
+     msg.type = GET_TICKS;
+     
+     /* send_recv(SEND, TASK_SYS, &msg); */
+     send_recv(BOTH, TASK_SYS, &msg);
+     /* /\* debug *\/ */
+     /* printf("t send ok\n"); */
+     /* send_recv(RECEIVE, TASK_SYS, &msg); */
+     /* printf("t receive ok .. ret: %d \n", msg.RETVAL); */
+     /* printf("ticks: %d\n", ticks); */
+     return msg.RETVAL;
 }

@@ -11,7 +11,7 @@ LDFLAGS		=	-s -Ttext $(KERNELENTRY)
 BOOTBIN		=	boot/boot.bin
 LOADERBIN	=	boot/loader.bin
 KERNELBIN	=	kernel/kernel.bin
-OBJS		=	kernel/kernel.o kernel/global.o kernel/start.o kernel/main.o kernel/proc.o kernel/syscall.o kernel/i8259.o kernel/keyboard.o kernel/protect.o kernel/clock.o lib/klib.o lib/string.o lib/kliba.o kernel/tty.o  kernel/console.o kernel/printf.o kernel/vsprintf.o
+OBJS		=	kernel/kernel.o kernel/global.o kernel/start.o kernel/main.o kernel/proc.o kernel/syscall.o kernel/i8259.o kernel/keyboard.o kernel/protect.o kernel/clock.o lib/klib.o lib/string.o lib/kliba.o kernel/tty.o  kernel/console.o kernel/printf.o kernel/vsprintf.o lib/misc.o kernel/systask.o
 IMG		=	a.img
 
 .PHONY:	all everything buildimg clean
@@ -28,31 +28,31 @@ buildimg:
 	sudo cp $(KERNELBIN) /mnt/floppy/ -v
 	sudo umount /mnt/floppy
 
-$(BOOTBIN): boot/boot.asm boot/include/fat12h.inc boot/include/pm.inc
+$(BOOTBIN): boot/boot.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
 
-$(LOADERBIN): boot/loader.asm boot/include/loader16.inc boot/include/loader32.inc boot/include/pm.inc
+$(LOADERBIN): boot/loader.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
 
 $(KERNELBIN): $(OBJS)
 	$(LD) $(LDFLAGS) -o $(KERNELBIN) $(OBJS)
 
-kernel/kernel.o: kernel/kernel.asm include/sconst.inc
+kernel/kernel.o: kernel/kernel.asm 
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
-kernel/global.o: kernel/global.c include/type.h include/const.h include/protect.h include/proc.h include/kliba.h include/global.h
+kernel/global.o: kernel/global.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/main.o: kernel/main.c include/type.h include/const.h include/protect.h include/kliba.h include/string.h include/proc.h include/global.h
+kernel/main.o: kernel/main.c 
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/start.o: kernel/start.c  include/type.h include/const.h include/string.h include/kliba.h include/protect.h include/proc.h include/kliba.h
+kernel/start.o: kernel/start.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/i8259.o:kernel/i8259.c include/type.h include/const.h include/kliba.h include/protect.h include/global.h
+kernel/i8259.o:kernel/i8259.c 
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/protect.o:kernel/protect.c include/type.h include/const.h include/kliba.h include/proc.h include/global.h
+kernel/protect.o:kernel/protect.c 
 	$(CC) $(CFLAGS) -o $@ $<
 kernel/clock.o: kernel/clock.c 
 	$(CC) $(CFLAGS) -o $@ $<
@@ -71,6 +71,10 @@ kernel/console.o: kernel/console.c
 
 kernel/proc.o:kernel/proc.c
 	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/systask.o:kernel/systask.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 kernel/syscall.o:kernel/syscall.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 lib/klib.o: lib/klib.c
@@ -80,6 +84,7 @@ lib/kliba.o: lib/klib.asm
 
 lib/string.o: lib/string.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
-
+lib/misc.o: lib/misc.c
+	$(CC) $(CFLAGS) -o $@ $<	
 clean:
 	rm -f $(OBJS) $(IMG)

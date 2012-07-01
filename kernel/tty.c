@@ -17,7 +17,10 @@ static void put_key(TTY *p_tty, u32 key);
 void task_tty()
 {
      TTY *p_tty;
-
+ /* 
+     spin("trest");
+     assert(0);
+          */
      for (p_tty=tty_table; p_tty<tty_table+NR_CONSOLE; p_tty++)
      {
 	  init_tty(p_tty);
@@ -26,6 +29,7 @@ void task_tty()
      nr_current_console = 0;
       */
      select_console(0);
+ 
      while(1)
      {
 	  for (p_tty=tty_table; p_tty<tty_table+NR_CONSOLE; p_tty++)
@@ -164,3 +168,48 @@ int sys_write(char *buf, int len, PROCESS *p_proc)
      return 0;	       
 }
 
+int sys_printx(int _unused1, int _unused2, char *s, PROCESS*p_proc)
+{
+     const char *p;
+     char ch;
+
+     char reenter_err[] = "? k_reenter is incorrect for unknown reason";
+     reenter_err[0] = MAG_CH_PANIC;
+
+     if (k_reenter == 0)
+     {
+	  /* in ring 1~3 */
+	  p = va2la(proc2pid(p_proc), s);
+     }
+     else if (k_reenter > 0)
+     {
+	  p = s;
+     }
+     else
+     {
+	  p = reenter_err;
+     }
+
+     if ((*p) == MAG_CH_PANIC ||
+	 (*p == MAG_CH_ASSERT && p_proc_ready < &proc_table[NR_TASK]))
+     {
+	  disable_int();
+	  char *v = (char*)V_MEM_BASE;
+	  char *q = p + 1;
+
+	  while ( v < (char*)(V_MEM_BASE + V_MEM_SIZE) && *q)
+	  {
+	       *v++ = *q++;
+	       *v++ = RED_CHAR;
+	  }
+	  __asm__ __volatile__("hlt");
+     }
+
+     while ((ch = *p++) != 0)
+     {
+	  if (ch == MAG_CH_ASSERT)
+	       continue;
+	  out_char(tty_table[p_proc->nr_tty].p_console, ch);
+     }
+     return 0;
+}

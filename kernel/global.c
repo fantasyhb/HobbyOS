@@ -20,14 +20,16 @@ TASK user_proc_table[NR_PROC] = {{TestA, STACK_SIZE_TESTA, "TestA"},
 				 {TestB, STACK_SIZE_TESTB, "TestB"},
 				 {TestC, STACK_SIZE_TESTC, "TestC"}};
 
-TASK task_table[NR_TASK] = {{task_tty, STACK_SIZE_TTY, "tty"}};
+TASK task_table[NR_TASK] = {{task_tty, STACK_SIZE_TTY, "tty"},
+			    {task_sys, STACK_SIZE_SYS, "sys"}};
 
 char task_stack[STACK_SIZE_TOTAL];
 u32	k_reenter;
 TSS tss;
 DESCRIPTOR ldt[2];
 irq_handler irq_table[NR_IRQ];
-system_call sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_write};
+system_call sys_call_table[NR_SYS_CALL] = {sys_printx,
+					   sys_sendrec};
 int ticks;
 
 
